@@ -19,6 +19,11 @@
   "background": {
     "service_worker": "background.js"
   },
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
   "content_scripts": [
     {
       "matches": [
@@ -34,6 +39,11 @@
     }
   ],
   "action": {
-    "default_title": "播了么小红书弹幕捕获插件"
+    "default_title": "播了么小红书弹幕捕获插件",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
   }
 }
