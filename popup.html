@@ -1,0 +1,196 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>播了么小红书弹幕捕获插件</title>
+    <style>
+        body {
+            width: 500px;
+            margin: 0;
+            padding: 18px;
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            background: #f6f7fb;
+            color: #202124;
+        }
+        h1 {
+            margin: 0 0 14px;
+            font-size: 18px;
+            text-align: center;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+        .status-line {
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .status-value {
+            font-weight: 700;
+            color: #ff2442;
+        }
+        button {
+            width: 100%;
+            border: 0;
+            border-radius: 10px;
+            padding: 13px 12px;
+            background: #ff2442;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        button.stopped {
+            background: #ff2442;
+        }
+        button.running {
+            background: #4b5563;
+        }
+        .hint {
+            color: #6b7280;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .log-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .log-title {
+            color: #111827;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .filter-btn {
+            width: auto;
+            border-radius: 999px;
+            padding: 6px 10px;
+            background: #eef2f7;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .filter-btn.active {
+            background: #ff2442;
+            color: #fff;
+        }
+        .log {
+            height: 320px;
+            overflow: auto;
+            border: 1px solid #edf0f5;
+            border-radius: 10px;
+            padding: 8px;
+            background: #f8fafc;
+            font-size: 12px;
+        }
+        .empty-log {
+            color: #9ca3af;
+            text-align: center;
+            padding: 28px 0;
+        }
+        .danmu-item {
+            background: #fff;
+            border: 1px solid #eef2f7;
+            border-radius: 9px;
+            padding: 8px 9px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+        }
+        .danmu-header {
+            display: grid;
+            grid-template-columns: auto auto minmax(0, max-content) minmax(0, 1fr);
+            align-items: center;
+            column-gap: 6px;
+            row-gap: 4px;
+            margin-bottom: 5px;
+            min-width: 0;
+        }
+        .danmu-time {
+            color: #94a3b8;
+            font-size: 11px;
+            flex: 0 0 auto;
+        }
+        .danmu-type {
+            flex: 0 0 auto;
+            border-radius: 999px;
+            padding: 2px 6px;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .danmu-type.comment {
+            background: #2563eb;
+        }
+        .danmu-type.enter {
+            background: #16a34a;
+        }
+        .danmu-type.like {
+            background: #ff2442;
+        }
+        .danmu-type.follow {
+            background: #9333ea;
+        }
+        .danmu-type.info {
+            background: #64748b;
+        }
+        .danmu-name {
+            color: #111827;
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+        .danmu-uid {
+            color: #64748b;
+            background: #f1f5f9;
+            border-radius: 6px;
+            padding: 1px 5px;
+            font-family: Consolas, monospace;
+            font-size: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: fit-content;
+            max-width: 190px;
+        }
+        .danmu-content {
+            color: #334155;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>播了么小红书弹幕捕获插件</h1>
+
+    <div class="card">
+        <div class="status-line">当前页面：<span id="pageStatus" class="status-value">检测中</span></div>
+        <div class="status-line">捕获状态：<span id="captureStatus" class="status-value">检测中</span></div>
+    </div>
+
+    <div class="card">
+        <button id="captureBtn" class="stopped">开始捕获</button>
+    </div>
+
+    <div class="card hint">
+        点击“开始捕获”后，即使本地服务端暂未启动，插件也会静默等待并自动重连。服务端启动后会自动收到弹幕。
+    </div>
+
+    <div class="card">
+        <div class="log-toolbar">
+            <div class="log-title">实时弹幕</div>
+            <button id="keyFilterBtn" class="filter-btn">只看关键弹幕</button>
+        </div>
+        <div class="log" id="log"><div class="empty-log">暂无事件</div></div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

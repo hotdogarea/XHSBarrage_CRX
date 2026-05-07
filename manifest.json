@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "播了么小红书弹幕捕获插件",
+  "version": "1.0.0",
+  "description": "捕获小红书直播页面弹幕，并转发到本地播了么 WebSocket 接收器。",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://redlive.xiaohongshu.com/*",
+    "*://ark.xiaohongshu.com/*",
+    "*://www.xiaohongshu.com/livestream/*",
+    "ws://127.0.0.1/*",
+    "ws://localhost/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://redlive.xiaohongshu.com/*",
+        "*://ark.xiaohongshu.com/*",
+        "*://www.xiaohongshu.com/livestream/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_title": "播了么小红书弹幕捕获插件"
+  }
+}
