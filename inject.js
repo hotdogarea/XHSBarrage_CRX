@@ -121,12 +121,12 @@
         if (!data) {
             return "";
         }
+        if (type === "enter") {
+            return "进入直播间";
+        }
         const content = normalizeText(data.desc || data.msg || data.content || "");
         if (content && type !== "like") {
             return content;
-        }
-        if (type === "enter") {
-            return "进入直播间";
         }
         if (type === "follow") {
             return "关注了主播";

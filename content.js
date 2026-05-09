@@ -15,6 +15,7 @@
     const ENTER_SELECTORS = [".folded-interaction-bar.role-user", "[class*='folded-interaction']"];
     const BLOCK_TEXT_PATTERNS = [/在线观众/, /直播介绍/, /欢迎来到直播间/, /平台倡导/, /严禁/, /举报/, /通知/, /paintTiming/, /^Error$/i];
     const seenMessages = new Map();
+    const semanticSeenMessages = new Map();
 
     let socket = null;
     let observer = null;
@@ -112,6 +113,9 @@
         }
         const dedupeKey = `im|${payload.type}|${payload.user_id || payload.nickname}|${payload.content || ""}`;
         if (!rememberRawMessage(dedupeKey, 3000)) {
+            return;
+        }
+        if (!rememberSemanticPayload(payload, "im_hook", 5000)) {
             return;
         }
         lastImHookPayloadTime = Date.now();
@@ -228,6 +232,60 @@
         return String(text || "").replace(/\s+/g, " ").trim();
     }
 
+    function cleanupSemanticSeenMessages(now) {
+        for (const [key, value] of semanticSeenMessages.entries()) {
+            if (now - value.time > 30000) {
+                semanticSeenMessages.delete(key);
+            }
+        }
+    }
+
+    function getSemanticKey(payload) {
+        if (!payload) {
+            return "";
+        }
+        const type = normalizeText(payload.type);
+        const nickname = normalizeText(payload.nickname);
+        const userId = normalizeText(payload.user_id);
+        const content = normalizeText(payload.content);
+        if (!type || !nickname) {
+            return "";
+        }
+        if (type === "enter") {
+            return `${type}|${userId || nickname}`;
+        }
+        if (!content) {
+            return "";
+        }
+        return `${type}|${nickname}|${content}`;
+    }
+
+    function rememberSemanticPayload(payload, source, ttl) {
+        const key = getSemanticKey(payload);
+        if (!key) {
+            return true;
+        }
+        const now = Date.now();
+        const lastSeen = semanticSeenMessages.get(key);
+        cleanupSemanticSeenMessages(now);
+        if (lastSeen && now - lastSeen.time < ttl) {
+            return false;
+        }
+        semanticSeenMessages.set(key, { time: now, source, user_id: payload.user_id || "" });
+        return true;
+    }
+
+    function hasRecentImSemanticPayload(payload, ttl) {
+        const key = getSemanticKey(payload);
+        if (!key) {
+            return false;
+        }
+        const now = Date.now();
+        const lastSeen = semanticSeenMessages.get(key);
+        cleanupSemanticSeenMessages(now);
+        return !!(lastSeen && lastSeen.source === "im_hook" && now - lastSeen.time < ttl);
+    }
+
     function isBlockedText(text) {
         if (!text || text.length < 2 || text.length > 120) {
             return true;
@@ -280,9 +338,12 @@
 
     function createPayload(nickname, content, source) {
         const cleanNickname = normalizeText(nickname).replace(/[：:]+$/, "") || "这位家人";
-        const cleanContent = normalizeText(content);
+        let cleanContent = normalizeText(content);
         const eventType = source.eventType || "comment";
         const userId = source.user_id || "";
+        if (eventType === "enter") {
+            cleanContent = "进入直播间";
+        }
 
         if (eventType === "comment" || eventType === "like" || eventType === "follow") {
             if (isBlockedText(cleanContent) || cleanContent === cleanNickname) {
@@ -412,8 +473,16 @@
             if (shouldSuppressDomPayload(payload)) {
                 return;
             }
-            log(logLabel, payload);
-            sendPayload(payload);
+            setTimeout(() => {
+                if (hasRecentImSemanticPayload(payload, 1500)) {
+                    return;
+                }
+                if (!rememberSemanticPayload(payload, "dom", 5000)) {
+                    return;
+                }
+                log(logLabel, payload);
+                sendPayload(payload);
+            }, 800);
         }
     }
 
